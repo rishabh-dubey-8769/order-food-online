@@ -496,10 +496,8 @@ Contributions are welcome! If you have any ideas, suggestions, or bug reports, p
 
 ## 🔗Contact Me
 
-- **Email:** [agrahari0899@gmail.com](mailto:agrahari0899@gmail.com)
-- **GitHub:** [@saksham2882](https://github.com/saksham2882)
-- **LinkedIn:** [@saksham-agrahari](https://www.linkedin.com/in/saksham-agrahari/)
-- **Portfolio:** [saksham-agrahari.vercel.app](https://saksham-agrahari.vercel.app)
+- **Email:** [rishabhdubey192005@gmail.com](mailto:rishabhdubey192005@gmail.com)
+- **GitHub:** [@rishabh-dubey-8769](https://github.com/rishabh-dubey-8769)
 
 ---
 
