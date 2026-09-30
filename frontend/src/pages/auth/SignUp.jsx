@@ -1,0 +1,192 @@
+import { useState } from "react";
+import { FaRegEye, FaRegEyeSlash, FaUser, FaStore, FaBicycle } from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { auth } from "../../../firebase";
+import { useDispatch } from "react-redux";
+import { setUserData } from "../../redux/userSlice";
+import authApi from "../../api/authApi";
+import AuthLayout from "@/components/layouts/AuthLayout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+const SignUp = () => {
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [role, setRole] = useState("user");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const handleSignUp = async () => {
+    if (!fullName.trim() || !email.trim() || !password.trim()) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+    setLoading(true);
+    try {
+      const data = await authApi.signup({ fullName, email, password, mobile, role });
+      dispatch(setUserData(data.user || data));
+      toast.success(data.message || "User Registered Successfully");
+      navigate("/home");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || error?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleAuth = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      const res = await signInWithPopup(auth, provider);
+      const data = await authApi.googleAuth({
+        fullName: res.user.displayName,
+        email: res.user.email,
+        role: role || "user",
+        mobile: mobile || "",
+      });
+      dispatch(setUserData(data.user || data));
+      toast.success(data.message || "User Registered Successfully");
+      navigate("/home");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || error?.message || "Something went wrong");
+    }
+  };
+
+  return (
+    <AuthLayout
+      title="Create an account"
+      subtitle="Enter your email below to create your account"
+    >
+      <Tabs defaultValue="signup" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsTrigger value="signin" onClick={() => navigate("/signin")}>Sign In</TabsTrigger>
+          <TabsTrigger value="signup">Sign Up</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      <div className="grid gap-5">
+        {/* ----------- Role Selection -----------*/}
+        <div className="grid gap-3">
+          <Label>I want to join as</Label>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div
+              className={`flex flex-col items-center justify-center gap-1 p-2 border rounded-xl cursor-pointer transition-all hover:bg-accent ${role === "user" ? "border-primary bg-primary/5 ring-1 ring-primary" : ""}`}
+              onClick={() => setRole("user")}
+            >
+              <FaUser className={`h-4 w-4 ${role === "user" ? "text-primary" : "text-muted-foreground"}`} />
+              <span className={`text-xs font-medium ${role === "user" ? "text-primary" : "text-muted-foreground"}`}>User</span>
+            </div>
+
+            <div
+              className={`flex flex-col items-center justify-center gap-1 p-2 border rounded-xl cursor-pointer transition-all hover:bg-accent ${role === "owner" ? "border-primary bg-primary/5 ring-1 ring-primary" : ""}`}
+              onClick={() => setRole("owner")}
+            >
+              <FaStore className={`h-4 w-4 ${role === "owner" ? "text-primary" : "text-muted-foreground"}`} />
+              <span className={`text-xs font-medium ${role === "owner" ? "text-primary" : "text-muted-foreground"}`}>Restaurant</span>
+            </div>
+
+            <div
+              className={`flex flex-col items-center justify-center gap-1 p-2 border rounded-xl cursor-pointer transition-all hover:bg-accent ${role === "deliveryBoy" ? "border-primary bg-primary/5 ring-1 ring-primary" : ""}`}
+              onClick={() => setRole("deliveryBoy")}
+            >
+              <FaBicycle className={`h-5 w-5 ${role === "deliveryBoy" ? "text-primary" : "text-muted-foreground"}`} />
+              <span className={`text-xs font-medium ${role === "deliveryBoy" ? "text-primary" : "text-muted-foreground"}`}>Delivery</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="fullName">Full Name</Label>
+            <Input
+              id="fullName"
+              placeholder="John Doe"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="name@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="mobile">Mobile Number</Label>
+            <Input
+              id="mobile"
+              type="tel"
+              placeholder="+91 1234567890"
+              value={mobile}
+              onChange={(e) => setMobile(e.target.value)}
+            />
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label htmlFor="password">Password</Label>
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <FaRegEyeSlash size={16} /> : <FaRegEye size={16} />}
+              </button>
+            </div>
+          </div>
+
+          <Button disabled={loading} onClick={handleSignUp} className="w-full">
+            {loading && <Spinner className="mr-2 h-4 w-4 animate-spin" />}
+            Sign Up
+          </Button>
+        </div>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <Separator />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">
+              Or continue with
+            </span>
+          </div>
+        </div>
+
+        <Button variant="outline" type="button" disabled={loading} onClick={handleGoogleAuth} className="w-full">
+          <FcGoogle className="mr-1 h-4 w-4" />
+          Google
+        </Button>
+      </div>
+    </AuthLayout>
+  );
+};
+
+export default SignUp;
